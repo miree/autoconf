@@ -96,6 +96,7 @@ dist_autoconflib_DATA = \
   lib/autoconf/functions.m4 \
   lib/autoconf/go.m4 \
   lib/autoconf/a68.m4 \
+  lib/autoconf/d.m4 \
   lib/autoconf/headers.m4 \
   lib/autoconf/types.m4 \
   lib/autoconf/libs.m4 \

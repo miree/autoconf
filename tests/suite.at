@@ -57,6 +57,8 @@ m4_include([go.at])
 m4_include([acgo.at])
 m4_include([a68.at])
 m4_include([aca68.at])
+m4_include([d.at])
+m4_include([acd.at])
 
 # Checking that AC_CHECK_FOO macros work properly.
 m4_include([semantics.at])

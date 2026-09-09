@@ -4,6 +4,10 @@ GNU Autoconf NEWS - User visible changes.
 
 ** New features
 
+*** Support for the D programming language has been added.
+  AC_PROG_GDC and AC_LANG(D) provide basic support for D when using
+  the gdc compiler, the D front end included in GCC.
+
 *** autom4te now supports defining M4 macros on the command line.
   The autom4te program now recognizes the command line options
   --define (-D) and --undefine (-U), and passes them along to M4.

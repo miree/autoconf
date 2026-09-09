@@ -418,6 +418,7 @@ Compilers and Preprocessors
 * Fortran Compiler::            Likewise
 * Go Compiler::                 Likewise
 * Algol 68 Compiler::           Likewise
+* D Compiler::                  Likewise
 
 Writing Tests
 
@@ -7138,6 +7139,7 @@ compiling.
 * Fortran Compiler::            Likewise
 * Go Compiler::                 Likewise
 * Algol 68 Compiler::           Likewise
+* D Compiler::                  Likewise
 @end menu
 
 @node Specific Compiler Characteristics
@@ -8710,6 +8712,32 @@ search for.
 If output variable @code{A68FLAGS} was not already set, set it to
 @option{-g -O2}.  If your package does not like this default,
 @code{A68FLAGS} may be set before @code{AC_PROG_A68}.
+@end defmac
+
+
+@node D Compiler
+@subsection D Compiler Characteristics
+@cindex D
+
+Autoconf provides basic support for the D programming language when
+using the @code{gdc} compiler, the D front end included in GCC (there
+is currently no support for other D compilers, such as DMD or LDC).
+
+@defmac AC_PROG_GDC (@ovar{compiler-search-list})
+Find the D compiler to use.  Check whether the environment variable
+@code{GDC} is set; if so, then set output variable @code{GDC} to its
+value.
+
+Otherwise, if the macro is invoked without an argument, then search for
+a D compiler named @code{gdc}.  If it is not found, then as a last
+resort set @code{GDC} to @code{gdc}.
+
+This macro may be invoked with an optional first argument which, if
+specified, must be a blank-separated list of D compilers to search for.
+
+If output variable @code{DFLAGS} was not already set, set it to
+@option{-g -O2}.  If your package does not like this default,
+@code{DFLAGS} may be set before @code{AC_PROG_GDC}.
 @end defmac
 
 @node System Services
