@@ -8740,6 +8740,29 @@ If output variable @code{DFLAGS} was not already set, set it to
 @code{DFLAGS} may be set before @code{AC_PROG_GDC}.
 @end defmac
 
+@defmac AC_D_LIBRARY_LDFLAGS
+@acindex{D_LIBRARY_LDFLAGS}
+@ovindex DLIBS
+@caindex d_libs
+Determine the linker flags (e.g., @option{-L} and @option{-l}) for the
+D runtime and standard libraries (druntime and Phobos, GDC's
+@code{libgphobos}) that are required to successfully link a D object
+file using a C or C++ linker driver.  The output variable @code{DLIBS}
+is set to these flags (which should be included after @code{LIBS}
+when linking).
+
+This macro is intended to be used in those situations when it is
+necessary to mix, e.g., C source code and D object files in a single
+program or shared library (@pxref{D Support, , , automake, GNU
+Automake}).  If instead a D compiler drives the final link step, this
+macro is unnecessary: @code{gdc} already knows how to add its own
+runtime libraries to the link line.
+
+This macro internally computes the flag needed for verbose linking
+output (always @option{-v} for a GCC front end like @code{gdc}) and
+caches the result in the @code{ac_cv_d_libs} variable.
+@end defmac
+
 @node System Services
 @section System Services
 

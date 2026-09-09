@@ -162,3 +162,105 @@ m4_expand_once([_AC_COMPILER_OBJEXT])[]dnl
 : ${DFLAGS:="-g -O2"}
 AC_LANG_POP([D])dnl
 ])# AC_PROG_GDC
+
+# ------------------------------------- #
+# Mixed-language linking (D with C/C++) #
+# ------------------------------------- #
+
+# _AC_D_LIBRARY_LDFLAGS
+# ----------------------
+#
+# Determine the linker flags (e.g. "-L" and "-l") for the D runtime
+# and standard libraries (druntime and Phobos, GDC's "libgphobos")
+# that are required to successfully link a D object file using a C or
+# C++ linker driver.  The output variable DLIBS is set to these flags.
+#
+# This macro is intended for the situation where a target's sources
+# are predominantly C or C++, with only some D objects mixed in: such
+# a target is linked with the C or C++ linker driver, since that
+# driver is the one that knows how to do C++-ish things like calling
+# global constructors.  But that linker driver does not know to pull
+# in D's runtime libraries the way $(GDC) does when it is itself the
+# link driver, so those flags have to be discovered and added to
+# LDADD/LIBADD by hand.
+#
+# Modeled on _AC_FC_LIBRARY_LDFLAGS, which solves the analogous
+# problem for Fortran, but much simplified: since only GDC (a GCC
+# front end) is supported, the verbose-output flag is always "-v",
+# so unlike _AC_FC_LIBRARY_LDFLAGS there is no need to probe for it,
+# and none of gfortran.m4's vendor-compiler-specific output quirks
+# (xlf, ifc, Portland Group, Cray, ...) apply.
+AC_DEFUN([_AC_D_LIBRARY_LDFLAGS],
+[AC_LANG_ASSERT([D])dnl
+AC_CACHE_CHECK([for D libraries of $GDC], [ac_cv_d_libs],
+[if test "x$DLIBS" != x; then
+  ac_cv_d_libs="$DLIBS" # Let the user override the test.
+else
+
+AC_LANG_CONFTEST([AC_LANG_PROGRAM([])])
+
+# Link our trivial D test program with -v to get the verbose output
+# that we can then parse for D's runtime linker flags.
+ac_save_DFLAGS=$DFLAGS
+DFLAGS="$DFLAGS -v"
+eval "set x $ac_link"
+shift
+_AS_ECHO_LOG([$[*]])
+ac_d_v_output=`eval $ac_link AS_MESSAGE_LOG_FD>&1 2>&1 |
+  sed '/^Driving:/d; /^Configured with:/d;
+      '"/^[[_$as_cr_Letters]][[_$as_cr_alnum]]*=/d"`
+AS_ECHO(["$ac_d_v_output"]) >&AS_MESSAGE_LOG_FD
+DFLAGS=$ac_save_DFLAGS
+
+rm -rf conftest*
+
+ac_cv_d_libs=
+
+# Save positional arguments (if any)
+ac_save_positional="$[@]"
+
+set X $ac_d_v_output
+while test $[@%:@] != 1; do
+  shift
+  ac_arg=$[1]
+  case $ac_arg in
+	[[\\/]]*.a | ?:[[\\/]]*.a)
+	  _AC_LIST_MEMBER_IF($ac_arg, $ac_cv_d_libs, ,
+	      ac_cv_d_libs="$ac_cv_d_libs $ac_arg")
+	  ;;
+	  # -Bstatic/-Bdynamic bracket the libraries that follow them, and
+	  # GDC's own libgphobos.spec wraps -lgphobos in "-Bstatic ...
+	  # -Bdynamic" (it is generally not safe to link dynamically), so
+	  # these have to be kept and kept in order, not just filtered as
+	  # "everything else".
+	-Bstatic | -Bdynamic)
+	  ac_cv_d_libs="$ac_cv_d_libs $ac_arg"
+	  ;;
+	  # Ignore these flags: any C or C++ linker driver already adds
+	  # them by default, so repeating them in DLIBS would be redundant.
+	-lang* | -lcrt*.o | -lc | -lgcc* | -[[lLR]]*=* | -link)
+	  ;;
+	-[[lLR]]*)
+	  _AC_LIST_MEMBER_IF($ac_arg, $ac_cv_d_libs, ,
+			     ac_cv_d_libs="$ac_cv_d_libs $ac_arg")
+	  ;;
+	  # Ignore everything else.
+  esac
+done
+# restore positional arguments
+set X $ac_save_positional; shift
+
+fi # test "x$DLIBS" = x
+])
+DLIBS="$ac_cv_d_libs"
+AC_SUBST([DLIBS])
+])# _AC_D_LIBRARY_LDFLAGS
+
+# AC_D_LIBRARY_LDFLAGS
+# ---------------------
+AC_DEFUN([AC_D_LIBRARY_LDFLAGS],
+[AC_REQUIRE([AC_PROG_GDC])dnl
+AC_LANG_PUSH([D])dnl
+_AC_D_LIBRARY_LDFLAGS
+AC_LANG_POP([D])dnl
+])# AC_D_LIBRARY_LDFLAGS
