@@ -5,8 +5,10 @@ GNU Autoconf NEWS - User visible changes.
 ** New features
 
 *** Support for the D programming language has been added.
-  AC_PROG_GDC and AC_LANG(D) provide basic support for D when using
-  the gdc compiler, the D front end included in GCC.
+  AC_PROG_DC and AC_LANG(D) provide basic support for D using any of
+  gdc (the D front end included in GCC), ldc2 (the LLVM-based D
+  compiler), or dmd (the reference compiler).  Packages that
+  specifically want GDC can use AC_PROG_GDC instead.
 
 *** autom4te now supports defining M4 macros on the command line.
   The autom4te program now recognizes the command line options

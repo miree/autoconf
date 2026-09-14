@@ -8719,25 +8719,61 @@ If output variable @code{A68FLAGS} was not already set, set it to
 @subsection D Compiler Characteristics
 @cindex D
 
-Autoconf provides basic support for the D programming language when
-using the @code{gdc} compiler, the D front end included in GCC (there
-is currently no support for other D compilers, such as DMD or LDC).
+Autoconf provides basic support for the D programming language,
+using any of the three known D compilers: @code{gdc} (the D front end
+included in GCC), @code{ldc2} (LDC, the LLVM-based D compiler), or
+@code{dmd} (the reference compiler).  GDC speaks GCC's command-line
+dialect throughout; DMD and LDC instead share a different dialect of
+their own (DMD's), which the macros below detect and adapt to
+automatically.
 
-@defmac AC_PROG_GDC (@ovar{compiler-search-list})
+@defmac AC_PROG_DC (@ovar{compiler-search-list})
 Find the D compiler to use.  Check whether the environment variable
-@code{GDC} is set; if so, then set output variable @code{GDC} to its
+@code{DC} is set; if so, then set output variable @code{DC} to its
 value.
 
-Otherwise, if the macro is invoked without an argument, then search for
-a D compiler named @code{gdc}.  If it is not found, then as a last
-resort set @code{GDC} to @code{gdc}.
+Otherwise, if the macro is invoked without an argument, then search
+for a D compiler named @code{gdc}, @code{ldc2}, or @code{dmd}, in that
+order (@code{gdc} first, since it needs nothing beyond a working GCC
+install). If none is found, then as a last resort set @code{DC} to
+@code{gdc}.
 
 This macro may be invoked with an optional first argument which, if
 specified, must be a blank-separated list of D compilers to search for.
 
 If output variable @code{DFLAGS} was not already set, set it to
-@option{-g -O2}.  If your package does not like this default,
-@code{DFLAGS} may be set before @code{AC_PROG_GDC}.
+@option{-g -O2} (@option{-g -O} if @code{DC} turned out to be
+@code{dmd}, whose @option{-O} takes no optimization level). If your
+package does not like this default, @code{DFLAGS} may be set before
+@code{AC_PROG_DC}.
+
+If @code{DC} turned out to be @code{ldc2} or @code{dmd}, this macro
+also rewrites @code{DC} to invoke it through Automake's @file{compile}
+script, if that script is present in the auxiliary directory, because
+unlike @code{gdc}, neither compiler accepts the space-separated
+@option{-o @var{file}} or bare @option{-l@var{lib}}/@option{-L@var{dir}}
+linker flags that Automake's generated build rules (and, e.g.,
+@code{pkg-config} output) assume; they require the glued
+@option{-o@var{file}} form and every linker flag individually wrapped
+as @option{-L<flag>} instead, and @file{compile} translates between
+the two. This macro does not itself arrange for @file{compile} to be
+installed (doing so unconditionally would demand it even for packages
+that only ever use @code{gdc}): most Automake-based packages get it
+for free, since @code{AC_PROG_CC} already requires it for the
+analogous C-compiler problem, but a pure-D Automake package that never
+calls @code{AC_PROG_CC} should add its own
+@code{AC_REQUIRE_AUX_FILE([compile])}, and a package using
+@code{AC_PROG_DC} without Automake at all must supply the script
+itself. If the script is required but not found, this macro warns and
+leaves @code{DC} unwrapped.
+@end defmac
+
+@defmac AC_PROG_GDC (@ovar{compiler-search-list})
+Legacy, GDC-only entry point, kept for packages that specifically want
+GDC (e.g. to rely on its ImportC feature) rather than whichever of
+GDC, LDC, or DMD happens to be installed. Equivalent to
+@code{AC_PROG_DC([gdc])}, with @code{GDC} set as an alias for
+@code{DC}.
 @end defmac
 
 @defmac AC_D_LIBRARY_LDFLAGS
@@ -8745,22 +8781,23 @@ If output variable @code{DFLAGS} was not already set, set it to
 @ovindex DLIBS
 @caindex d_libs
 Determine the linker flags (e.g., @option{-L} and @option{-l}) for the
-D runtime and standard libraries (druntime and Phobos, GDC's
-@code{libgphobos}) that are required to successfully link a D object
-file using a C or C++ linker driver.  The output variable @code{DLIBS}
-is set to these flags (which should be included after @code{LIBS}
-when linking).
+D runtime and standard libraries (druntime and Phobos -- GDC's
+@code{libgphobos}, DMD's @code{libphobos2}, or LDC's
+@code{libphobos2-ldc}/@code{libdruntime-ldc}) that are required to
+successfully link a D object file using a C or C++ linker driver. The
+output variable @code{DLIBS} is set to these flags (which should be
+included after @code{LIBS} when linking).
 
 This macro is intended to be used in those situations when it is
 necessary to mix, e.g., C source code and D object files in a single
 program or shared library (@pxref{D Support, , , automake, GNU
-Automake}).  If instead a D compiler drives the final link step, this
-macro is unnecessary: @code{gdc} already knows how to add its own
-runtime libraries to the link line.
+Automake}). If instead a D compiler drives the final link step, this
+macro is unnecessary: @code{gdc}, @code{ldc2}, and @code{dmd} all
+already know to add their own runtime libraries to the link line.
 
 This macro internally computes the flag needed for verbose linking
-output (always @option{-v} for a GCC front end like @code{gdc}) and
-caches the result in the @code{ac_cv_d_libs} variable.
+output (always @option{-v}, for all three compilers) and caches the
+result in the @code{ac_cv_d_libs} variable.
 @end defmac
 
 @node System Services
